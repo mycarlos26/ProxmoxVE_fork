@@ -219,7 +219,7 @@ function default_settings() {
   LAN_BRG="vmbr1"
   LAN_IP_ADDR="192.168.1.1"
   LAN_NETMASK="255.255.255.0"
-  LAN_VLAN=",tag=999"
+  LAN_VLAN=""
   MTU=""
   START_VM="yes"
   METHOD="default"
@@ -299,7 +299,7 @@ function advanced_settings() {
 
   if LAN_BRG=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a LAN Bridge" 8 58 vmbr0 --title "LAN BRIDGE" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
     if [ -z $LAN_BRG ]; then
-      LAN_BRG="vmbr0"
+      LAN_BRG="vmbr1"
     fi
     echo -e "${DGN}Using LAN Bridge: ${BGN}$LAN_BRG${CL}"
   else

@@ -503,28 +503,42 @@ msg_info "OpenWrt is being started in order to configure the network interfaces.
 qm start $VMID
 sleep 15
 msg_ok "Network interfaces are being configured as OpenWrt initiates."
+
 send_line_to_vm ""
 send_line_to_vm "uci delete network.@device[0]"
+
+# Configuración WAN en eth0 (vmbr0)
 send_line_to_vm "uci set network.wan=interface"
-send_line_to_vm "uci set network.wan.device=eth1"
+send_line_to_vm "uci set network.wan.device=eth0"
 send_line_to_vm "uci set network.wan.proto=dhcp"
+
+# Configuración LAN en eth1 (vmbr1)
 send_line_to_vm "uci delete network.lan"
 send_line_to_vm "uci set network.lan=interface"
-send_line_to_vm "uci set network.lan.device=eth0"
+send_line_to_vm "uci set network.lan.device=eth1"
 send_line_to_vm "uci set network.lan.proto=static"
 send_line_to_vm "uci set network.lan.ipaddr=${LAN_IP_ADDR}"
 send_line_to_vm "uci set network.lan.netmask=${LAN_NETMASK}"
+
 send_line_to_vm "uci commit"
 send_line_to_vm "halt"
+
 msg_ok "Network interfaces have been successfully configured."
+
+# Esperar hasta que la VM se apague
 until qm status $VMID | grep -q "stopped"; do
   sleep 2
 done
+
 msg_info "Bridge interfaces are being added."
+
+# WAN en vmbr0 (eth0) y LAN en vmbr1 (eth1)
 qm set $VMID \
-  -net0 virtio,bridge=${LAN_BRG},macaddr=${LAN_MAC}${LAN_VLAN}${MTU} \
-  -net1 virtio,bridge=${BRG},macaddr=${MAC}${VLAN}${MTU} >/dev/null 2>/dev/null
+  -net0 virtio,bridge=vmbr0,macaddr=${MAC}${VLAN}${MTU} \
+  -net1 virtio,bridge=vmbr1,macaddr=${LAN_MAC}${LAN_VLAN}${MTU} >/dev/null 2>/dev/null
+
 msg_ok "Bridge interfaces have been successfully added."
+
 if [ "$START_VM" == "yes" ]; then
   msg_info "Starting OpenWrt VM"
   qm start $VMID
